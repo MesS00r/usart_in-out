@@ -33,20 +33,27 @@ void uprint_bin(const uint16_t num);
 void uprint_hex(const uint16_t num);
 
 void uprint_write(const up_arg_t arg);
-// void uprint_write(uint8_t len, const UpArg *args);
-
-#ifdef __cplusplus
-}
-#endif
 
 // ****** FUNCTIONS && STRUCT FOR C++ ******
 
-struct UpArg {
-    up_arg_t arg = {};
+#ifdef __cplusplus
+}
 
-    UpArg(const char ch) : arg({.type = CHAR, .data = (uint16_t)(ch)}) {}
-    UpArg(const char *str) : arg({.type = STR, .str = str}) {}
-    UpArg(uint16_t num, arg_type type = DEC) : arg({.type = type, .data = num}) {}
+struct UpArg {
+    up_arg_t arg;
+
+    UpArg(const char ch) {
+        arg.type = CHAR;
+        arg.data = (uint16_t)ch;
+    }
+    UpArg(const char *str) {
+        arg.type = STR;
+        arg.str = str;
+    }
+    UpArg(const int num, arg_type type = DEC) {
+        arg.type = type;
+        arg.data = num;
+    }
 };
 
 static inline UpArg bin(uint16_t arg) { return UpArg(arg, BIN); }
@@ -55,9 +62,18 @@ static inline UpArg hex(uint16_t arg) { return UpArg(arg, HEX); }
 // ****** UPRINT TEMPLATE ******
 
 template<typename ... Args>
-void uprint(Args& ... args) {
-    uint16_t dummy[] = {0, (uprint_write(args), 0)...};
+void uprint(const Args& ... args) {
+    static_assert(sizeof...(args) <= 20, "Too many arguments for uprint.");
+    int dummy[] = {0, (uprint_write(UpArg(args).arg), 0)...};
     (void)dummy;
 }
+
+template<typename ... Args>
+void uprintln(const Args& ... args) {
+    uprint(args...);
+    uput_ch('\n');
+}
+
+#endif // __cplusplus
 
 #endif //USARTPRINT_H_INCLUDED
