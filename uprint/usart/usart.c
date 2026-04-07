@@ -40,7 +40,9 @@ void uput_str(const char *str) {
 
 // ****** USART PRINT DEC ******
 
-void uprint_dec(const uint16_t num) {
+void uprint_dec(const uint16_t num, bool neg) {
+    if (neg) uput_ch('-');
+
     for (uint8_t deg = 4; deg > 0; deg--) {
         uint16_t divnum = divu10d(num, deg - 1);
         uint16_t rem = remu10(divnum);
@@ -81,17 +83,5 @@ void uprint_hex(const uint16_t num) {
         char hex_num = hex_mask(rem);
 
         uput_ch(hex_num);
-    }
-}
-
-// ****** USART PRINT ******
-
-void uprint_write(const up_arg_t arg) {
-    switch (arg.type) {
-    case CHAR: uput_ch((char)arg.data); break;
-    case STR:  uput_str(arg.str);       break;
-    case DEC:  uprint_dec(arg.data);    break;
-    case BIN:  uprint_bin(arg.data);    break;
-    case HEX:  uprint_hex(arg.data);    break;
     }
 }

@@ -7,13 +7,13 @@
 int main(void) {
     ubegin(9600);
 
-    uprint("Hello ");
+    uprint("Hello");
     uprintln("world");
 
-    uprint("NUMS -> ", 123, 7, 12, 1111, '\n');
+    uprint("NUMS -> ", neg(-123), ", ", bin(7), ", ", 12, ", ", hex(1111), '\n');
 
     // Max 20 args!!!
-    uprint("fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23);
+    uprint("fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", ' ');
     uprintln("fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23);
 
     return 0;
