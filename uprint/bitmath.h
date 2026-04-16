@@ -3,6 +3,10 @@
 
 #include <avr/io.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // ****** DIV && REM 10 ******
 
 static inline uint16_t divu10(uint16_t num) {
@@ -110,5 +114,9 @@ static inline uint16_t remu16d(uint16_t num, uint8_t deg) {
 
     return num & mask;
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif // BITMATH_H_INCLUDED

@@ -7,31 +7,29 @@ struct sys_buffer {
     uint8_t first, last;
 };
 
-
-
 sys_buffer* buffer_init(void) {
     static struct sys_buffer global = {
         .buffer = {0},
         .first = 0, .last = 0
     };
 
-    timer1_init();
-
     return &global;
 };
 
 // ****** USART BUFFER METHODS ******
 
-void buffer_reset(sys_buffer *buf) {
-    if (!buf) return;
+bool buffer_reset(sys_buffer *buf) {
+    if (!buf) return false;
 
     memset(buf->buffer, 0, sizeof(buf->buffer));
     buf->first = 0;
     buf->last = 0;
+
+    return true;
 }
 
-void buffer_sendch(sys_buffer *buf, char ch) {
-    if (!buf) return;
+bool buffer_sendch(sys_buffer *buf, char ch) {
+    if (!buf) return false;
 
     if (buf->last >= BUFFER_SIZE) {
         buffer_reset(buf);
@@ -39,42 +37,51 @@ void buffer_sendch(sys_buffer *buf, char ch) {
 
     buf->buffer[buf->last] = ch;
     buf->last++;
+
+    return true;
 }
 
-void buffer_readch(sys_buffer *buf, char *ch) {
-    if (!buf) return;
-    if (!ch) return;
+bool buffer_readch(sys_buffer *buf, char *ch) {
+    if (!buf) return false;
+    if (!ch) return false;
 
-    if (buf->first == 0 && buf->last == 0) return;
+    if (buf->first == 0 && buf->last == 0) return false;
     else if (buf->first == buf->last) {
         buffer_reset(buf);
-        return;
+        return false;
     }
 
     *ch = buf->buffer[buf->first];
     buf->first++;
+
+    return true;
 }
 
 // ****** TIMER 1 ******
 
-void timer1_init(void) {
+void input_timer_init(void) {
     TCCR1B = (1 << CS11) | (1 << CS10);
     TCNT1 = 0;
 }
 
-static inline int16_t _uget_ch_timeout(uint16_t time_tick) {
+static inline bool _uget_ch_timeout(uint16_t time_tick, char *ch) {
+    if (!ch) return false;
+
     uint16_t start = TCNT1;
     uint16_t now = 0, elapsed = 0;
 
     while (true) {
         now = TCNT1;
 
-        if (UCSR0A & (1 << RXC0)) return UDR0;
+        if (UCSR0A & (1 << RXC0)) {
+            *ch = UDR0;
+            return true;
+        }
 
         if (now >= start) elapsed = now - start;
         else elapsed = (65536 - start) + now;
 
-        if (elapsed >= time_tick) return 0;
+        if (elapsed >= time_tick) return false;
     }
 }
 
@@ -85,22 +92,25 @@ static inline char _uget_ch_nobuf(void) {
     return UDR0;
 }
 
-int16_t uset_ch(sys_buffer *buf, char *copy) {
-    if (!buf) return -1;
+bool uset_ch(sys_buffer *buf, uint8_t *last, char *copy) {
+    if (!buf) return false;
 
     static char next = 0;
     if (next != 0) {
         if (copy) *copy = next;
 
         buffer_sendch(buf, next);
-        return buf->last;
+        if (last) *last = buf->last;
+        next = 0;
+        
+        return true;
     }
     
     char ch = _uget_ch_nobuf();
 
     if (ch == '\n') ch = '\0';
     else if (ch == '\r') {
-        next = _uget_ch_timeout(1000);
+        if (!_uget_ch_timeout(1000, &next)) next = 0;
         if (next == '\n') next = 0;
 
         ch = '\0';
@@ -109,85 +119,46 @@ int16_t uset_ch(sys_buffer *buf, char *copy) {
     if (copy) *copy = ch;
 
     buffer_sendch(buf, ch);
-    return buf->last;
+    if (last) *last = buf->last;
+
+    return true;
 }
 
 // ****** USART SCAN STR ******
 
-int16_t uset_line(sys_buffer *buf, uint8_t len) {
-    if (!buf) return -1;
+bool uset_line(sys_buffer *buf, uint8_t len, uint8_t *word_i) {
+    if (!buf) return false;
+    if (len == 0) return false;
 
     char ch = 0;
     uint8_t str_index = buf->last;
 
     for (uint8_t i = 0; i < len; i++) {
-        uset_ch(buf, &ch);
+        uset_ch(buf, NULL, &ch);
 
-        if (ch == '\n') break;
+        if (ch == '\0') break;
     }
 
-    return str_index;
-}
+    if (word_i) *word_i = str_index;
 
-// ****** USART READ CHAR ******
-
-int16_t read_ch(sys_buffer *buffer, char *ch) {
-    if (!buffer) return -1;
-    if (!ch) return -1;
-
-    *ch = cbuffer_readch(buffer);
-
-    return buffer->head;
+    buffer_sendch(buf, '\0');
+    return true;
 }
 
 // ****** USART READ STR ******
 
-int16_t read_line_ends(sys_buffer *buffer, char *line_buf, uint8_t len) {
-    if (!buffer) return -1;
-    if (!line_buf) return -1;
-
-    char ch = 0, next = 0;
-    uint8_t str_index = buffer->head;
-
-    for (uint8_t i = 0; i < len; i++) {
-        read_ch(buffer, &ch);
-
-        if (ch == '\n') break;
-        if (ch == '\r') {
-            read_ch(buffer, &next);
-            
-            if (next == '\n') break;
-            else next = 0;
-        }
-
-        line_buf[i] = ch;
-        if (next != 0 && i != len - 1) {
-            line_buf[i + 1] = ch;
-        }
-    }
-
-    return str_index;
-}
-
-int16_t read_line(sys_buffer *buffer, char *line_buf, uint8_t len) {
-    if (!buffer) return -1;
-    if (!line_buf) return -1;
+bool uread_word(sys_buffer *buf, char *word_buf, uint8_t len) {
+    if (!buf) return false;
+    if (!word_buf) return false;
 
     char ch = 0;
-    uint8_t str_index = buffer->head;
+    for (uint8_t i = 0; i <len; i++) {
+        buffer_readch(buf, &ch);
 
-    for (uint8_t i = 0; i < len; i++) {
-        read_ch(buffer, &ch);
+        if (ch == '\0') break;
 
-        if (ch == '\n') return str_index;
-        if (ch == '\r') {
-            read_ch(buffer, &ch);
-            
-            if (ch == '\n') return str_index;
-        }
-
-        line_buf[i] = ch;
+        word_buf[i] = ch;
     }
 
-    return str_index;
+    return true;
 }
