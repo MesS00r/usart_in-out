@@ -2,19 +2,25 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
-#include <usart.hpp>
+#include <uprint.hpp>
+#include <uinput.hpp>
 
 int main(void) {
     ubegin(9600);
+    Input::uinput_init();
 
     uprint("Hello ");
     uprintln("world");
 
-    uprint("NUMS -> ", neg(-123), ", ", bin(7), ", ", 12, ", ", hex(1111), '\n');
+    uscan(STR, STR);
 
-    // Max 20 args!!!
-    uprint("fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", ' ');
-    uprintln("fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23, "fws", 's', 123, "fws", 23);
+    char word[8] = {0};
+    uint16_t num = 0;
+
+    uread(s_word(word), s_num(num));
+
+    uprintln(word);
+    uprintln(num);
 
     return 0;
 }

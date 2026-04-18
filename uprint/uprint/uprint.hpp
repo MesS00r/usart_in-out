@@ -104,14 +104,14 @@ struct Neg { uint16_t val; };
  * @param arg Число-аргумент.
  * @return Bin (Структура-метка).
  */
-inline Bin bin(uint16_t arg) { return {arg}; }
+inline Bin s_bin(uint16_t arg) { return {arg}; }
 
 /**
  * @brief Помечает число как шестнадцатеричное.
  * @param arg Число-аргумент.
  * @return Hex (Структура-метка).
  */
-inline Hex hex(uint16_t arg) { return {arg}; }
+inline Hex s_hex(uint16_t arg) { return {arg}; }
 
 /**
  * @brief Помечает число как отрицательное,
@@ -119,7 +119,7 @@ inline Hex hex(uint16_t arg) { return {arg}; }
  * @param arg Число-аргумент.
  * @return Neg (Структура-метка).
  */
-inline Neg neg(int16_t arg)  { return {(uint16_t)(arg < 0 ? -arg : arg)}; }
+inline Neg s_neg(int16_t arg)  { return {(uint16_t)(arg < 0 ? -arg : arg)}; }
 /** @} marker_structs */
 /** @} specifiers */
 
@@ -130,7 +130,7 @@ inline Neg neg(int16_t arg)  { return {(uint16_t)(arg < 0 ? -arg : arg)}; }
  * @brief Функции-обертки, работают через перегрузку.
  * @internal ДЛЯ ВНУТРЕННЕГО ИСПОЛЬЗОВАНИЯ.
  */
-namespace upsys {
+namespace uprint_sys {
     inline void uprint_write(const char ch)      { uput_ch(ch); }
     inline void uprint_write(const char *str)    { uput_str(str); }
 
@@ -164,7 +164,7 @@ namespace upsys {
 template<typename ... Args>
 void uprint(const Args& ... args) {
     static_assert(sizeof...(args) <= 20, "Too many arguments for uprint.");
-    (upsys::uprint_write(args), ...);
+    (uprint_sys::uprint_write(args), ...);
 }
 
 /**

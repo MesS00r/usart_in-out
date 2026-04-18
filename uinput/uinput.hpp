@@ -8,6 +8,8 @@
 
 #define BUFFER_SIZE 32
 
+// ****** FUNCTIONS C ******
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,9 +34,11 @@ bool uread_num(sys_buffer *buf, uint16_t *num);
 #ifdef __cplusplus
 }
 
+// ****** FUNCTIONS && CLASS C++ ******
+
 class Input {
 private:
-    static sys_buffer *buf;
+    static inline sys_buffer *buf;
 public:
     static void uinput_init() {
         buf = buffer_init();
@@ -48,15 +52,17 @@ public:
     static bool set_ch()                           { return uset_ch(buf, NULL); }
     static bool set_line()                         { return uset_line(buf); }
 
-    static bool read_word(char &word, uint8_t len) { return uread_word(buf, &word, len); }
+    static bool read_word(char *word, uint8_t len) { return uread_word(buf, word, len); }
     static bool read_num(uint16_t &num)            { return uread_num(buf, &num); }
 
     Input() = delete;
 };
 
+// ****** USART SCAN ******
+
 typedef enum { CH, STR } specs;
 
-namespace ussys {
+namespace uscan_sys {
     inline bool uscan_check(specs spec) {
         switch (spec) {
         case CH: Input::set_ch();    return true;
@@ -71,8 +77,31 @@ namespace ussys {
 
 template<typename ... Args>
 bool uscan(const Args& ... args) {
-    static_assert(sizeof...(args) <= 20, "Too many arguments for uprint.");
-    return (ussys::uscan_check(args) && ...);
+    static_assert(sizeof...(args) <= 20, "Too many arguments for usan.");
+    return (uscan_sys::uscan_check(args) && ...);
+}
+
+// ****** USART READ ******
+
+struct Word { char *word; uint8_t len; };
+struct Num  { uint16_t &num; };
+
+template<uint8_t L>
+inline Word s_word(char (&word)[L]) { return {word, sizeof(word)}; }
+inline Num s_num(uint16_t &num)     { return {num}; }
+
+namespace uread_sys {
+    inline bool uread_accept(Word word)     { return Input::read_word(word.word, word.len); }
+    inline bool uread_accept(Num num)       { return Input::read_num(num.num); }
+
+    template<typename T>
+    inline void uread_accept(const T others) { static_assert(sizeof(T) == 0, "Invalid specifier."); }
+};
+
+template<typename ... Args>
+bool uread(const Args& ... args) {
+    static_assert(sizeof...(args) <= 20, "Too many arguments for uread.");
+    return (uread_sys::uread_accept(args) && ...);
 }
 
 #endif // __cplusplus
