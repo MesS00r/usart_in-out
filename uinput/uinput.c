@@ -92,7 +92,7 @@ static inline char _uget_ch_nobuf(void) {
     return UDR0;
 }
 
-bool uset_ch(sys_buffer *buf, uint8_t *last, char *copy) {
+bool uset_ch(sys_buffer *buf, char *copy) {
     if (!buf) return false;
 
     static char next = 0;
@@ -100,9 +100,8 @@ bool uset_ch(sys_buffer *buf, uint8_t *last, char *copy) {
         if (copy) *copy = next;
 
         buffer_sendch(buf, next);
-        if (last) *last = buf->last;
         next = 0;
-        
+
         return true;
     }
     
@@ -111,7 +110,7 @@ bool uset_ch(sys_buffer *buf, uint8_t *last, char *copy) {
     if (ch == '\n') ch = '\0';
     else if (ch == '\r') {
         if (!_uget_ch_timeout(1000, &next)) next = 0;
-        if (next == '\n') next = 0;
+        else if (next == '\n') next = 0;
 
         ch = '\0';
     }
@@ -119,27 +118,20 @@ bool uset_ch(sys_buffer *buf, uint8_t *last, char *copy) {
     if (copy) *copy = ch;
 
     buffer_sendch(buf, ch);
-    if (last) *last = buf->last;
-
     return true;
 }
 
 // ****** USART SCAN STR ******
 
-bool uset_line(sys_buffer *buf, uint8_t len, uint8_t *word_i) {
+bool uset_line(sys_buffer *buf) {
     if (!buf) return false;
-    if (len == 0) return false;
 
     char ch = 0;
-    uint8_t str_index = buf->last;
 
-    for (uint8_t i = 0; i < len; i++) {
-        uset_ch(buf, NULL, &ch);
-
-        if (ch == '\0') break;
+    for (uint8_t i = 0; i < BUFFER_SIZE - 1; i++) {
+        if (!uset_ch(buf, &ch)) return false;
+        if (ch == '\0') return true;
     }
-
-    if (word_i) *word_i = str_index;
 
     buffer_sendch(buf, '\0');
     return true;
@@ -150,15 +142,54 @@ bool uset_line(sys_buffer *buf, uint8_t len, uint8_t *word_i) {
 bool uread_word(sys_buffer *buf, char *word_buf, uint8_t len) {
     if (!buf) return false;
     if (!word_buf) return false;
+    if (len == 0) return false;
 
     char ch = 0;
-    for (uint8_t i = 0; i <len; i++) {
-        buffer_readch(buf, &ch);
 
-        if (ch == '\0') break;
-
+    for (uint8_t i = 0; i < len - 1; i++) {
+        if (!buffer_readch(buf, &ch)) return false;
         word_buf[i] = ch;
+
+        if (ch == '\0') return true;
     }
 
+    word_buf[len - 1] = '\0';
+
+    while (buffer_readch(buf, &ch)) {
+        if (ch == '\0') break;
+    }
+
+    return true;
+}
+
+// ****** USART READ NUMBER ******
+
+bool uread_num(sys_buffer *buf, uint16_t *num) {
+    if (!buf) return false;
+    if (!num) return false;
+
+    const uint8_t len = 5;
+    uint8_t digit = 0;
+    uint16_t val = 0;
+
+    char num_buf[len];
+    memset(num_buf, 0, len);
+
+    if (!uread_word(buf, num_buf, sizeof(num_buf))) return false;
+    num_buf[sizeof(num_buf) - 1] = '\0';
+
+    *num = 0;
+
+    for (int8_t i = 0; i < len; i++) {
+        if (num_buf[i] == '\0') break;
+        if (num_buf[i] > '9' || num_buf[i] < '0') return false;
+        
+        digit = num_buf[i] - '0';
+
+        val *= 10;
+        val += digit;
+    }
+
+    *num = val;
     return true;
 }

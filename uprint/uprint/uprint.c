@@ -44,7 +44,7 @@ void uprint_dec(const uint16_t num, bool neg) {
 
     for (uint8_t deg = 4; deg > 0; deg--) {
         divnum = divu10d(num, deg - 1);
-        rem = remu10(divnum);
+        rem = modu10(divnum);
 
         if (divnum == 0 && (deg - 1) != 0) continue;
         else uput_ch(('0' + rem));
@@ -61,7 +61,7 @@ void uprint_bin(const uint16_t num) {
     uput_str("0b");
     for (; deg > 0; deg--) {
         divnum = divu2d(num, deg - 1);
-        rem = remu2(divnum);
+        rem = modu2(divnum);
 
         uput_ch(('0' + rem));
         if (deg == 9) uput_ch(' ');
@@ -83,7 +83,7 @@ void uprint_hex(const uint16_t num) {
     uput_str("0x");
     for (; deg > 0; deg--) {
         divnum = divu16d(num, deg - 1);
-        rem = remu16(divnum);
+        rem = modu16(divnum);
         hex_num = _hex_mask(rem);
 
         uput_ch(hex_num);

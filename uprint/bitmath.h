@@ -9,6 +9,17 @@ extern "C" {
 
 // ****** DIV && REM 10 ******
 
+/**
+ * @defgroup dec_div_mod Функции-операторы (десятичные).
+ * @brief Делят число на 10 или находят остаток от деления числа на 10.
+ * @{
+ */
+
+/**
+ * @brief Делит число на 10.
+ * @param num Число 2 байта.
+ * @return uint16_t Число поделенное на 10.
+ */
 static inline uint16_t divu10(uint16_t num) {
     uint16_t quot, rem;
 
@@ -21,7 +32,12 @@ static inline uint16_t divu10(uint16_t num) {
     return quot + (rem > 9);
 }
 
-static inline uint16_t remu10(uint16_t num) {
+/**
+ * @brief Находит остаток от деления числа на 10.
+ * @param num Число 2 байта.
+ * @return uint16_t Остаток от деления числа на 10.
+ */
+static inline uint16_t modu10(uint16_t num) {
     uint16_t quot, rem;
 
     quot = (num >> 1) + (num >> 2);
@@ -33,6 +49,13 @@ static inline uint16_t remu10(uint16_t num) {
     return rem > 9 ? rem - 10 : rem;
 }
 
+/**
+ * @brief Делит число на 10 в степени n.
+ * @param num Число 2 байта.
+ * @param deg Степень десяти (n).
+ * @warning Максимальная степень (n) ограничена 4.
+ * @return uint16_t Число поделенное на 10 в степени n.
+ */
 static inline uint16_t divu10d(uint16_t num, uint8_t deg) {
     deg = deg > 4 ? 4 : deg;
 
@@ -42,36 +65,74 @@ static inline uint16_t divu10d(uint16_t num, uint8_t deg) {
     return num;
 }
 
-static inline uint16_t remu10d(uint16_t num, uint8_t deg) {
+/**
+ * @brief Находит остаток от деления числа на 10 в степени n.
+ * @param num Число 2 байта.
+ * @param deg Степень десяти (n).
+ * @warning Максимальная степень (n) ограничена 4.
+ * @return uint16_t Остаток от деления числа на 10 в степени n.
+ */
+static inline uint16_t modu10d(uint16_t num, uint8_t deg) {
     uint16_t rem = 0;
     uint16_t mul = 1;
 
     deg = deg > 4 ? 4 : deg;
 
     for (uint8_t i = 0; i < deg; i++) {
-        rem += remu10(num) * mul;
+        rem += modu10(num) * mul;
         mul *= 10;
         num = divu10(num);
     }
     return rem;
 }
+/** @} dec_div_mod */
 
 // ****** DIV && REM 2 ******
 
+/**
+ * @defgroup bin_div_mod Функции-операторы (двоичные).
+ * @brief Делят число на 2 или находят остаток от деления числа на 2.
+ * @{
+ */
+
+/**
+ * @brief Делит число на 2.
+ * @param num Число 2 байта.
+ * @return uint16_t Число поделенное на 2.
+ */
 static inline uint16_t divu2(uint16_t num) {
     return num >> 1;
 }
 
-static inline uint16_t remu2(uint16_t num) {
+/**
+ * @brief Находит остаток от деления числа на 2.
+ * @param num Число 2 байта.
+ * @return uint16_t Остаток от деления числа на 2.
+ */
+static inline uint16_t modu2(uint16_t num) {
     return num & 0x01;
 }
 
+/**
+ * @brief Делит число на 2 в степени n.
+ * @param num Число 2 байта.
+ * @param deg Степень десяти (n).
+ * @warning Максимальная степень (n) ограничена 16.
+ * @return uint16_t Число поделенное на 2 в степени n.
+ */
 static inline uint16_t divu2d(uint16_t num, uint8_t deg) {
     deg = deg > 16 ? 16 : deg;
     return num >> deg;
 }
 
-static inline uint16_t remu2d(uint16_t num, uint8_t deg) {
+/**
+ * @brief Находит остаток от деления числа на 2 в степени n.
+ * @param num Число 2 байта.
+ * @param deg Степень десяти (n).
+ * @warning Максимальная степень (n) ограничена 16.
+ * @return uint16_t Остаток от деления числа на 2 в степени n.
+ */
+static inline uint16_t modu2d(uint16_t num, uint8_t deg) {
     uint16_t mask = 0x00;
 
     deg = deg > 16 ? 16 : deg;
@@ -84,23 +145,54 @@ static inline uint16_t remu2d(uint16_t num, uint8_t deg) {
 
     return num & mask;
 }
+/** @} bin_div_mod */
 
 // ****** DIV && REM 16 ******
 
+/**
+ * @defgroup hex_div_mod Функции-операторы (шестнадцатеричные).
+ * @brief Делят число на 16 или находят остаток от деления числа на 16.
+ * @{
+ */
+
+/**
+ * @brief Делит число на 16.
+ * @param num Число 2 байта.
+ * @return uint16_t Число поделенное на 16.
+ */
 static inline uint16_t divu16(uint16_t num) {
     return num >> 4;
 }
 
-static inline uint16_t remu16(uint16_t num) {
+/**
+ * @brief Находит остаток от деления числа на 16.
+ * @param num Число 2 байта.
+ * @return uint16_t Остаток от деления числа на 16.
+ */
+static inline uint16_t modu16(uint16_t num) {
     return num & 0x0f;
 }
 
+/**
+ * @brief Делит число на 16 в степени n.
+ * @param num Число 2 байта.
+ * @param deg Степень десяти (n).
+ * @warning Максимальная степень (n) ограничена 4.
+ * @return uint16_t Число поделенное на 16 в степени n.
+ */
 static inline uint16_t divu16d(uint16_t num, uint8_t deg) {
     deg = deg > 4 ? 4 : deg;
     return num >> (4 * deg);
 }
 
-static inline uint16_t remu16d(uint16_t num, uint8_t deg) {
+/**
+ * @brief Находит остаток от деления числа на 16 в степени n.
+ * @param num Число 2 байта.
+ * @param deg Степень десяти (n).
+ * @warning Максимальная степень (n) ограничена 4.
+ * @return uint16_t Остаток от деления числа на 16 в степени n.
+ */
+static inline uint16_t modu16d(uint16_t num, uint8_t deg) {
     uint16_t mask = 0x00;
 
     deg = deg > 4 ? 4 : deg;
@@ -114,6 +206,7 @@ static inline uint16_t remu16d(uint16_t num, uint8_t deg) {
 
     return num & mask;
 }
+/** @} hex_div_mod */
 
 #ifdef __cplusplus
 }
