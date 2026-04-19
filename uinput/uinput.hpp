@@ -1,5 +1,6 @@
 /**
- * @file USARTInput.hpp
+ * @file uinput.hpp
+ * @author MesSor
  * @brief Заголовочный файл для USART-ввода (буферизованный ввод с поддержкой C++ обёрток).
  */
 
@@ -37,7 +38,7 @@ typedef struct sys_buffer sys_buffer;
 sys_buffer* buffer_init(void);
 
 /**
- * @defgroup std_buffer_methods Методы Структуры-буфера.
+ * @defgroup std_buffer_methods Методы cтруктуры-буфера.
  * @brief Работают с буфером.
  * @{
  */
@@ -83,8 +84,7 @@ bool buffer_readch(sys_buffer *buf, char *ch);
 void input_timer_init(void);
 
 /**
- * @defgroup uscan_buffer_methods Методы Структуры-буфера, 
- *           необходимые для 1 части интерфейса ввода (uscan).
+ * @defgroup uscan_buffer_methods Методы cтруктуры-буфера для uscan.
  * @brief Читают пользовательский ввод и работают с буфером.
  * @see uscan
  * @{
@@ -113,8 +113,7 @@ bool uset_line(sys_buffer *buf);
 // uscan_buffer_methods ends
 
 /**
- * @defgroup uread_buffer_methods Методы Структуры-буфера,
- *           необходимые для 2 части интерфейса ввода (uread).
+ * @defgroup uread_buffer_methods Методы структуры-буфера для uread.
  * @brief Работают с буфером (читают).
  * @see uread
  * @{

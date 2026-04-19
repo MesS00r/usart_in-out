@@ -1,5 +1,6 @@
 /**
- * @file USARTPrint.hpp
+ * @file uprint.hpp
+ * @author MesSor
  * @brief Заголовочный файл для USART-вывода (вывод с поддержкой C++ обёрток).
  */
 
